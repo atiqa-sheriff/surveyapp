@@ -1,0 +1,2 @@
+2024-07-19T12:03:40.740Z [error]: Error creating survey: Survey validation failed: questions.0.options: Cast to embedded failed for value "fdgs" (type string) at path "options" because of "ObjectParameterError"
+2024-07-19T12:03:53.311Z [error]: Error creating survey: Survey validation failed: questions.0.options: Cast to embedded failed for value "fdgs" (type string) at path "options" because of "ObjectParameterError", questions.1.options: Cast to embedded failed for value "fdsgdfsg" (type string) at path "options" because of "ObjectParameterError"

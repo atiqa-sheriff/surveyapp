@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Survey Details</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="survey-details-container">
+      <h1 id="survey-title"></h1>
+      <p id="survey-description"></p>
+      <ul id="survey-questions"></ul>
+    </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const surveyId = urlParams.get("id");
+
+        if (surveyId) {
+          try {
+            const response = await fetch(`/api/surveys/${surveyId}`, {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "x-auth-token": localStorage.getItem("authToken"),
+              },
+            });
+
+            if (response.ok) {
+              const survey = await response.json();
+              document.getElementById("survey-title").textContent =
+                survey.title;
+              document.getElementById("survey-description").textContent =
+                survey.description;
+              const surveyQuestions =
+                document.getElementById("survey-questions");
+              survey.questions.forEach((question) => {
+                const questionItem = document.createElement("li");
+                questionItem.textContent = question.text;
+                const optionsList = document.createElement("ul");
+                question.options.forEach((option) => {
+                  const optionItem = document.createElement("li");
+                  optionItem.textContent = option.text;
+                  optionsList.appendChild(optionItem);
+                });
+                questionItem.appendChild(optionsList);
+                surveyQuestions.appendChild(questionItem);
+              });
+            } else {
+              console.error(
+                "Failed to fetch survey details:",
+                response.statusText
+              );
+              alert("Failed to fetch survey details. Please try again.");
+            }
+          } catch (error) {
+            console.error("Error fetching survey details:", error);
+            alert("Failed to fetch survey details. Please try again.");
+          }
+        } else {
+          alert("Survey ID not found in URL.");
+        }
+      });
+    </script>
+  </body>
+</html>
