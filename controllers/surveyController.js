@@ -1,30 +1,21 @@
-const Survey = require("../models/Survey");
-const logger = require("../config/logger");
+const Survey = require("../models/Survey"); // Make sure the path to your Survey model is correct
 
 // Create a new survey
 exports.createSurvey = async (req, res) => {
   const { title, description, questions } = req.body;
-  const userId = req.user.id;
-
-  const surveyData = {
-    title,
-    description,
-    questions: questions.map((q) => ({
-      text: q.text,
-      options: q.options.map((opt) => ({ text: opt.text })),
-      required: q.required,
-    })),
-    user: userId,
-  };
 
   try {
-    logger.info(`Creating survey with data: ${JSON.stringify(surveyData)}`);
-    const newSurvey = new Survey(surveyData);
-    await newSurvey.save();
-    res.json(newSurvey);
+    const newSurvey = new Survey({
+      title,
+      description,
+      questions,
+      user: req.user.id,
+    });
+
+    const survey = await newSurvey.save();
+    res.json(survey);
   } catch (error) {
-    logger.error(`Error creating survey: ${error.message}`);
-    res.status(500).send("Server Error");
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -33,9 +24,8 @@ exports.getSurveys = async (req, res) => {
   try {
     const surveys = await Survey.find({ user: req.user.id });
     res.json(surveys);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -43,18 +33,12 @@ exports.getSurveys = async (req, res) => {
 exports.getSurveyById = async (req, res) => {
   try {
     const survey = await Survey.findById(req.params.id);
-
     if (!survey) {
-      return res.status(404).json({ msg: "Survey not found" });
+      return res.status(404).json({ message: "Survey not found" });
     }
-
     res.json(survey);
-  } catch (err) {
-    console.error(err.message);
-    if (err.kind === "ObjectId") {
-      return res.status(404).json({ msg: "Survey not found" });
-    }
-    res.status(500).send("Server error");
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -62,41 +46,20 @@ exports.getSurveyById = async (req, res) => {
 exports.updateSurvey = async (req, res) => {
   const { title, description, questions } = req.body;
 
-  const surveyFields = {
-    title,
-    description,
-    questions: questions.map((q) => ({
-      text: q.text,
-      options: q.options.map((opt) => ({ text: opt.text })),
-      required: q.required,
-    })),
-  };
-
   try {
     let survey = await Survey.findById(req.params.id);
-
     if (!survey) {
-      return res.status(404).json({ msg: "Survey not found" });
+      return res.status(404).json({ message: "Survey not found" });
     }
 
-    // Ensure user owns the survey
-    if (survey.user.toString() !== req.user.id) {
-      return res.status(401).json({ msg: "User not authorized" });
-    }
+    survey.title = title || survey.title;
+    survey.description = description || survey.description;
+    survey.questions = questions || survey.questions;
 
-    survey = await Survey.findByIdAndUpdate(
-      req.params.id,
-      { $set: surveyFields },
-      { new: true }
-    );
-
+    survey = await survey.save();
     res.json(survey);
-  } catch (err) {
-    console.error(err.message);
-    if (err.kind === "ObjectId") {
-      return res.status(404).json({ msg: "Survey not found" });
-    }
-    res.status(500).send("Server error");
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -104,24 +67,63 @@ exports.updateSurvey = async (req, res) => {
 exports.deleteSurvey = async (req, res) => {
   try {
     const survey = await Survey.findById(req.params.id);
-
     if (!survey) {
-      return res.status(404).json({ msg: "Survey not found" });
-    }
-
-    // Ensure user owns the survey
-    if (survey.user.toString() !== req.user.id) {
-      return res.status(401).json({ msg: "User not authorized" });
+      return res.status(404).json({ message: "Survey not found" });
     }
 
     await survey.remove();
+    res.json({ message: "Survey removed" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
-    res.json({ msg: "Survey removed" });
-  } catch (err) {
-    console.error(err.message);
-    if (err.kind === "ObjectId") {
-      return res.status(404).json({ msg: "Survey not found" });
+// Update survey question by ID
+exports.updateSurveyQuestion = async (req, res) => {
+  const { surveyId, questionId } = req.params;
+  const { text, options, required } = req.body;
+
+  try {
+    const survey = await Survey.findById(surveyId);
+    if (!survey) {
+      return res.status(404).json({ message: "Survey not found" });
     }
-    res.status(500).send("Server error");
+
+    const question = survey.questions.id(questionId);
+    if (!question) {
+      return res.status(404).json({ message: "Question not found" });
+    }
+
+    question.text = text;
+    question.options = options;
+    question.required = required;
+
+    await survey.save();
+    res.json(survey);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+// Delete survey question by ID
+exports.deleteSurveyQuestion = async (req, res) => {
+  const { surveyId, questionId } = req.params;
+
+  try {
+    const survey = await Survey.findById(surveyId);
+    if (!survey) {
+      return res.status(404).json({ message: "Survey not found" });
+    }
+
+    const question = survey.questions.id(questionId);
+    if (!question) {
+      return res.status(404).json({ message: "Question not found" });
+    }
+
+    question.remove();
+    await survey.save();
+    res.json(survey);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
   }
 };
