@@ -26,10 +26,10 @@ router.put("/:id", auth, updateSurvey);
 // Delete survey by ID
 router.delete("/:id", auth, deleteSurvey);
 
-// Update a specific question within a survey
+// Update a survey question
 router.put("/:surveyId/questions/:questionId", auth, updateSurveyQuestion);
 
-// Delete a specific question within a survey
+// Delete a survey question
 router.delete("/:surveyId/questions/:questionId", auth, deleteSurveyQuestion);
 
 module.exports = router;

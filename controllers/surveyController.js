@@ -1,21 +1,29 @@
 const Survey = require("../models/Survey");
+const mongoose = require("mongoose");
 
 // Create a new survey
 exports.createSurvey = async (req, res) => {
   const { title, description, questions } = req.body;
   const userId = req.user.id;
 
+  const surveyData = {
+    title,
+    description,
+    questions: questions.map((q) => ({
+      _id: new mongoose.Types.ObjectId(), // Ensure each question has a unique ObjectId
+      text: q.text,
+      options: q.options,
+      required: q.required,
+    })),
+    user: userId,
+  };
+
   try {
-    const newSurvey = new Survey({
-      title,
-      description,
-      questions,
-      user: userId,
-    });
-    const survey = await newSurvey.save();
-    res.json(survey);
+    const newSurvey = new Survey(surveyData);
+    await newSurvey.save();
+    res.json(newSurvey);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server Error", error });
   }
 };
 
@@ -25,7 +33,7 @@ exports.getSurveys = async (req, res) => {
     const surveys = await Survey.find({ user: req.user.id });
     res.json(surveys);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server Error", error });
   }
 };
 
@@ -38,7 +46,7 @@ exports.getSurveyById = async (req, res) => {
     }
     res.json(survey);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server Error", error });
   }
 };
 
@@ -47,19 +55,19 @@ exports.updateSurvey = async (req, res) => {
   const { title, description, questions } = req.body;
 
   try {
-    let survey = await Survey.findById(req.params.id);
+    const survey = await Survey.findById(req.params.id);
     if (!survey) {
       return res.status(404).json({ message: "Survey not found" });
     }
 
-    survey.title = title;
-    survey.description = description;
-    survey.questions = questions;
+    survey.title = title || survey.title;
+    survey.description = description || survey.description;
+    survey.questions = questions || survey.questions;
 
-    survey = await survey.save();
+    await survey.save();
     res.json(survey);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server Error", error });
   }
 };
 
@@ -74,11 +82,11 @@ exports.deleteSurvey = async (req, res) => {
     await survey.remove();
     res.json({ message: "Survey removed" });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server Error", error });
   }
 };
 
-// Update a specific question within a survey
+// Update a survey question
 exports.updateSurveyQuestion = async (req, res) => {
   const { surveyId, questionId } = req.params;
   const { text, options, required } = req.body;
@@ -101,11 +109,11 @@ exports.updateSurveyQuestion = async (req, res) => {
     await survey.save();
     res.json(survey);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server Error", error });
   }
 };
 
-// Delete a specific question within a survey
+// Delete a survey question
 exports.deleteSurveyQuestion = async (req, res) => {
   const { surveyId, questionId } = req.params;
 
@@ -121,9 +129,10 @@ exports.deleteSurveyQuestion = async (req, res) => {
     }
 
     question.remove();
+
     await survey.save();
     res.json(survey);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server Error", error });
   }
 };
