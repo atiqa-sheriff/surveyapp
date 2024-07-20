@@ -1,17 +1,17 @@
-const Survey = require("../models/Survey"); // Make sure the path to your Survey model is correct
+const Survey = require("../models/Survey");
 
 // Create a new survey
 exports.createSurvey = async (req, res) => {
   const { title, description, questions } = req.body;
+  const userId = req.user.id;
 
   try {
     const newSurvey = new Survey({
       title,
       description,
       questions,
-      user: req.user.id,
+      user: userId,
     });
-
     const survey = await newSurvey.save();
     res.json(survey);
   } catch (error) {
@@ -52,9 +52,9 @@ exports.updateSurvey = async (req, res) => {
       return res.status(404).json({ message: "Survey not found" });
     }
 
-    survey.title = title || survey.title;
-    survey.description = description || survey.description;
-    survey.questions = questions || survey.questions;
+    survey.title = title;
+    survey.description = description;
+    survey.questions = questions;
 
     survey = await survey.save();
     res.json(survey);
@@ -78,7 +78,7 @@ exports.deleteSurvey = async (req, res) => {
   }
 };
 
-// Update survey question by ID
+// Update a specific question within a survey
 exports.updateSurveyQuestion = async (req, res) => {
   const { surveyId, questionId } = req.params;
   const { text, options, required } = req.body;
@@ -105,7 +105,7 @@ exports.updateSurveyQuestion = async (req, res) => {
   }
 };
 
-// Delete survey question by ID
+// Delete a specific question within a survey
 exports.deleteSurveyQuestion = async (req, res) => {
   const { surveyId, questionId } = req.params;
 
