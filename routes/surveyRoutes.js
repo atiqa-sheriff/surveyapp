@@ -1,35 +1,86 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth");
-const {
-  createSurvey,
-  getSurveys,
-  getSurveyById,
-  updateSurvey,
-  deleteSurvey,
-  updateSurveyQuestion,
-  deleteSurveyQuestion,
-} = require("../controllers/surveyController");
+const Survey = require("../models/Survey");
 
-// Create a new survey
-router.post("/", auth, createSurvey);
+router.get("/", auth, async (req, res) => {
+  try {
+    const surveys = await Survey.find({ user: req.user.id });
+    res.json(surveys);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
 
-// Get all surveys
-router.get("/", auth, getSurveys);
+router.post("/", auth, async (req, res) => {
+  const { title, description, questions } = req.body;
 
-// Get survey by ID
-router.get("/:id", auth, getSurveyById);
+  try {
+    const newSurvey = new Survey({
+      title,
+      description,
+      questions,
+      user: req.user.id,
+    });
 
-// Update survey by ID
-router.put("/:id", auth, updateSurvey);
+    const survey = await newSurvey.save();
+    res.json(survey);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
 
-// Delete survey by ID
-router.delete("/:id", auth, deleteSurvey);
+router.get("/:id", auth, async (req, res) => {
+  try {
+    const survey = await Survey.findById(req.params.id);
+    if (!survey) {
+      return res.status(404).json({ msg: "Survey not found" });
+    }
+    res.json(survey);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
 
-// Update a survey question
-router.put("/:surveyId/questions/:questionId", auth, updateSurveyQuestion);
+router.put("/:id", auth, async (req, res) => {
+  const { title, description, questions } = req.body;
 
-// Delete a survey question
-router.delete("/:surveyId/questions/:questionId", auth, deleteSurveyQuestion);
+  try {
+    let survey = await Survey.findById(req.params.id);
+    if (!survey) {
+      return res.status(404).json({ msg: "Survey not found" });
+    }
+
+    survey = await Survey.findByIdAndUpdate(
+      req.params.id,
+      { $set: { title, description, questions } },
+      { new: true }
+    );
+
+    res.json(survey);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
+
+router.delete("/:id", auth, async (req, res) => {
+  try {
+    const survey = await Survey.findById(req.params.id);
+    if (!survey) {
+      return res.status(404).json({ msg: "Survey not found" });
+    }
+
+    await survey.remove();
+
+    res.json({ msg: "Survey removed" });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
 
 module.exports = router;

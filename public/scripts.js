@@ -159,7 +159,6 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
     document.getElementById("questions-container").appendChild(questionItem);
 
-    // Attach event listeners to the new buttons
     questionItem.querySelector(".add-option").addEventListener("click", (e) => {
       const optionsContainer = e.target.previousElementSibling;
       const optionCount =
@@ -174,7 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
       optionsContainer.appendChild(optionContainer);
 
-      // Attach event listener to the new delete button
       optionContainer
         .querySelector(".delete-option")
         .addEventListener("click", (e) => {
@@ -188,7 +186,6 @@ document.addEventListener("DOMContentLoaded", () => {
         questionItem.remove();
       });
 
-    // Attach event listeners to the initial delete buttons
     questionItem.querySelectorAll(".delete-option").forEach((button) => {
       button.addEventListener("click", (e) => {
         button.parentElement.remove();

@@ -1,27 +1,41 @@
-const express = require("express");
-const connectDB = require("./config/db");
-const path = require("path");
+import React from "react";
+import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+import HomePage from "./components/HomePage";
+import SurveyList from "./components/SurveyList";
+import CreateSurvey from "./components/CreateSurvey";
+import SurveyDetails from "./components/SurveyDetails";
+import UserProfile from "./components/UserProfile";
 
-const app = express();
+function App() {
+  return (
+    <Router>
+      <div>
+        <nav>
+          <ul>
+            <li>
+              <Link to="/">Home</Link>
+            </li>
+            <li>
+              <Link to="/surveys">Surveys</Link>
+            </li>
+            <li>
+              <Link to="/create-survey">Create Survey</Link>
+            </li>
+            <li>
+              <Link to="/profile">Profile</Link>
+            </li>
+          </ul>
+        </nav>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/surveys" element={<SurveyList />} />
+          <Route path="/create-survey" element={<CreateSurvey />} />
+          <Route path="/surveys/:id" element={<SurveyDetails />} />
+          <Route path="/profile" element={<UserProfile />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
 
-// Connect to the database
-connectDB();
-
-// Initialize middleware
-app.use(express.json({ extended: false }));
-
-// Define Routes
-app.use("/api/users", require("./routes/userRoutes"));
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/surveys", require("./routes/surveyRoutes"));
-
-// Serve static assets in production
-app.use(express.static(path.join(__dirname, "public")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "public", "index.html"));
-});
-
-const PORT = process.env.PORT || 5005;
-
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+export default App;
