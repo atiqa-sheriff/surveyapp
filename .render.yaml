@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: surveyapp-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: MONGO_URI
+        value: mongodb+srv://sheriffatiqa:0301Atiq@suveryapp.etoxfpb.mongodb.net/?retryWrites=true&w=majority&appName=suveryapp
+      - key: JWT_SECRET
+        value: 12shewhyjdsjhfjdgmsj189990kkdmnfdgsfdgsbnmbfgdoggybunnyhappybirthdaycakesunflower
