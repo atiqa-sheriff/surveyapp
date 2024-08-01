@@ -110,7 +110,7 @@ exports.profile = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password"); // Exclude passwords
+    const users = await User.find().select("-password");
     res.json(users);
   } catch (err) {
     console.error(err.message);

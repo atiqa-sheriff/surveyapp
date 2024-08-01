@@ -41,7 +41,7 @@ function CreateSurvey() {
     setQuestions(newQuestions);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const token = localStorage.getItem("token");
 
@@ -50,92 +50,119 @@ function CreateSurvey() {
       return;
     }
 
-    fetch("http://localhost:5005/api/surveys", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ title, description, questions }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Survey created:", data);
-        setTitle("");
-        setDescription("");
-        setQuestions([{ text: "", options: [""] }]);
-        navigate("/survey-completed");
-      })
-      .catch((error) => {
-        console.error("Error creating survey:", error);
+    try {
+      const response = await fetch("http://localhost:5005/api/surveys", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title, description, questions }),
       });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+      console.log("Survey created:", data);
+      setTitle("");
+      setDescription("");
+      setQuestions([{ text: "", options: [""] }]);
+      navigate("/survey-completed");
+    } catch (error) {
+      console.error("Error creating survey:", error);
+    }
+  };
+  const handleBackToProfile = () => {
+    navigate("/profile");
   };
 
   return (
-    <div>
-      <h1>Create a New Survey</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Title:</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Description:</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
-        </div>
-        {questions.map((question, qIndex) => (
-          <div key={qIndex}>
-            <label>Question {qIndex + 1}:</label>
-            <input
-              type="text"
-              value={question.text}
-              onChange={(e) => handleQuestionChange(qIndex, e)}
-              required
-            />
-            {question.options.map((option, oIndex) => (
-              <div key={oIndex}>
-                <label>Option {oIndex + 1}:</label>
+    <div className="main-content">
+      <div className="container">
+        <h1 className="title">Create a New Survey</h1>
+        <div id="survey-form-wrapper">
+          <form id="survey-form" onSubmit={handleSubmit}>
+            <div>
+              <label>Survey Title:</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label>Survey Description:</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
+            </div>
+            {questions.map((question, qIndex) => (
+              <div key={qIndex} className="question-item">
+                <label className="question">Question {qIndex + 1}:</label>
                 <input
                   type="text"
-                  value={option}
-                  onChange={(e) => handleOptionChange(qIndex, oIndex, e)}
+                  value={question.text}
+                  onChange={(e) => handleQuestionChange(qIndex, e)}
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => deleteOption(qIndex, oIndex)}
-                >
-                  Delete Option
-                </button>
+                <div className="question-actions">
+                  <span
+                    className="action-link delete-link"
+                    onClick={() => deleteQuestion(qIndex)}
+                  >
+                    Delete Question
+                  </span>
+                  <span className="action-link add-link" onClick={addQuestion}>
+                    Add Question
+                  </span>
+                </div>
+                {question.options.map((option, oIndex) => (
+                  <div key={oIndex} className="option-item">
+                    <label>Option {oIndex + 1}:</label>
+                    <input
+                      type="text"
+                      value={option}
+                      onChange={(e) => handleOptionChange(qIndex, oIndex, e)}
+                      required
+                    />
+                    <div className="option-actions">
+                      <span
+                        className="action-link delete-link"
+                        onClick={() => deleteOption(qIndex, oIndex)}
+                      >
+                        Delete Option
+                      </span>
+                      <span
+                        className="action-link add-link"
+                        onClick={() => addOption(qIndex)}
+                      >
+                        Add Option
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             ))}
-            <button type="button" onClick={() => addOption(qIndex)}>
-              Add Option
-            </button>
-            <button type="button" onClick={() => deleteQuestion(qIndex)}>
-              Delete Question
-            </button>
-          </div>
-        ))}
-        <button type="button" onClick={addQuestion}>
-          Add Question
-        </button>
-        <button type="submit">Create Survey</button>
-      </form>
+            <div className="create-survey-container">
+              <button className="submit" type="submit">
+                Create Survey
+              </button>
+              <button
+                className="submit"
+                type="button"
+                onClick={handleBackToProfile}
+              >
+                Back to Profile
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const options = [];
 
       questionItem.querySelectorAll(".option-text").forEach((optionInput) => {
-        options.push({ text: optionInput.value }); // Format each option as an object
+        options.push({ text: optionInput.value });
       });
 
       questions.push({ text: questionText, options, required: true });

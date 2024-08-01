@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -12,7 +12,7 @@ function Login() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:5005/api/auth", {
+      const response = await fetch("http://localhost:5005/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -21,45 +21,48 @@ function Login() {
       });
 
       if (!response.ok) {
-        throw new Error("Invalid credentials");
+        const data = await response.json();
+        throw new Error(data.message || "Invalid credentials");
       }
 
       const data = await response.json();
       localStorage.setItem("token", data.token);
-      navigate("/profile");
+      navigate("/profile"); // Redirect to profile page upon successful login
     } catch (err) {
       setError(err.message);
     }
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit">Login</button>
-      </form>
-      <p>
-        Need an account? <Link to="/signup">Sign Up</Link>
-      </p>
+    <div className="page-content">
+      <h1 className="title">SurveySphere</h1>
+      <h2 className="subheading">Login</h2>
+      <div className="auth-form">
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label>Email:</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label>Password:</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          {error && <p className="error-message">{error}</p>}
+          <button className="submit" type="submit">
+            Login
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

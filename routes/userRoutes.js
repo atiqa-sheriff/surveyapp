@@ -11,12 +11,12 @@ const {
 
 router.get("/", auth, getAllUsers);
 
+router.get("/profile", auth, profile);
+
 router.get("/:id", auth, getUserById);
 
 router.put("/:id", auth, updateUser);
 
 router.delete("/:id", auth, deleteUser);
-
-router.get("/profile", auth, profile);
 
 module.exports = router;
